@@ -34,7 +34,7 @@ def load_from_json():
     return np.array(weight_matrix), np.array(bias_vector)
 
 def multiply_weight(inputs, weight):
-    return np.matmul(weight, inputs)
+    return weight @ inputs
 
 def add_bias(weighted_inputs, bias):  
     return np.add(weighted_inputs, bias)
@@ -54,13 +54,12 @@ def get_image():
             for row in data:
                 yield row
             
-
-def create_batch(size=32):
+def create_batch(size=64):
     
     images = get_image()
 
     while True:
-        label_array = []
+        labels = []
         batch = []
         for i in range(size):
             image = next(images)
@@ -71,13 +70,16 @@ def create_batch(size=32):
             filename = rf"train\{filename}"
             image_vector = transform_image_to_vector(filename)
             batch.append(image_vector)
-            label_array.append(label)
-        yield np.array(batch), np.array(label_array)
-
+            labels.append(label)
+            batch_array = np.rot90(np.array(batch))
+            label_array = np.array(labels)
+        yield batch_array, label_array
 
 def run():
     weight, bias = load_from_json()
-    inputs = transform_image_to_vector(r"train\0.png")
+    bias = bias.reshape((10,1))
+    batch_generator = create_batch()
+    inputs, labels = next(batch_generator)
     weighted_inputs = multiply_weight(inputs, weight)
     activation_inputs = add_bias(weighted_inputs, bias)
     outputs = softmax(activation_inputs)
@@ -85,5 +87,5 @@ def run():
     print(outputs)
 
 
-
+run()
 
