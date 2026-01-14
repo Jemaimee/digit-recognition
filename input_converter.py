@@ -45,10 +45,35 @@ def softmax(z):
     return z_exp / np.sum(z_exp)
 
 def get_image():
-    with open("train_labels.csv", newline='') as file:
-        reader = csv.DictReader(file)
-        for row in reader :
-            yield row
+    while True:
+        with open("train_labels.csv", newline='') as file:
+            data = list(csv.DictReader(file))
+        
+        while True:
+            random.shuffle(data)
+            for row in data:
+                yield row
+            
+
+def create_batch(size=32):
+    
+    images = get_image()
+
+    while True:
+        label_array = []
+        batch = []
+        for i in range(size):
+            image = next(images)
+            filename, label = (
+                image['filename'],
+                image['label']
+            )
+            filename = rf"train\{filename}"
+            image_vector = transform_image_to_vector(filename)
+            batch.append(image_vector)
+            label_array.append(label)
+        yield np.array(batch), np.array(label_array)
+
 
 def run():
     weight, bias = load_from_json()
@@ -59,11 +84,6 @@ def run():
     prediction = np.argmax(outputs)
     print(outputs)
 
-i = get_image()
-while True:
 
-    print(next(i))
-    input()
-    
 
 
